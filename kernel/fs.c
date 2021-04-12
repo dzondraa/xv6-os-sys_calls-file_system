@@ -380,6 +380,7 @@ bmap(struct inode *ip, uint bn)
 	}
 	bn -= NDIRECT;
 
+	// Single indirect
 	if(bn < NINDIRECT){
 		// Load indirect block, allocating if necessary.
 		if((addr = ip->addrs[NDIRECT]) == 0)
@@ -394,8 +395,47 @@ bmap(struct inode *ip, uint bn)
 		return addr;
 	}
 
+	 // Double indirect
+	 if(bn < 11 + 1 * NINDIRECT + NINDIRECT * NINDIRECT) // Final capacity
+	 {
+		// Load double indirect block, allocating if necessary.
+		if((addr = ip->addrs[NDIRECT + 1]) == 0)
+		ip->addrs[NDIRECT + 1] = addr = balloc(ip->dev);
+		
+		// get the double indirect table, first level
+		bp = bread(ip->dev, addr);
+		a = (uint*)bp->data;
+		
+		// calculate indexes
+		firstIndex = bn / NINDIRECT;
+		secondIndex = bn % NINDIRECT;
+		
+		// get level 1 and allcoate if necessary
+		if((addr = a[firstIndex]) == 0){
+			a[firstIndex] = addr = balloc(ip->dev);
+			log_write(bp);
+		}
+		brelse(bp);
+
+		// get the double indirect table, second level
+		bp = bread(ip->dev, addr);
+		a = (uint*)bp->data;
+
+		// if doesen't exist - assign a block
+		if((addr = a[secondIndex]) == 0){
+			a[secondIndex] = addr = balloc(ip->dev);
+			log_write(bp);
+		}
+
+		brelse(bp);
+		return addr;
+	}
+	
+
 	panic("bmap: out of range");
 }
+
+
 
 // Truncate inode (discard contents).
 // Only called when the inode has no links
