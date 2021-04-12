@@ -8,7 +8,7 @@ ENTRY(_start)
 SECTIONS
 {
 	/* Link the kernel at this address: "." means the current address */
-	/* Must be equal to KERNLINK */
+        /* Must be equal to KERNLINK */
 	. = 0x80100000;
 
 	.text : AT(0x100000) {
@@ -26,7 +26,7 @@ SECTIONS
 		PROVIDE(__STAB_BEGIN__ = .);
 		*(.stab);
 		PROVIDE(__STAB_END__ = .);
-		/*BYTE(0)		Force the linker to allocate space
+		BYTE(0)		/* Force the linker to allocate space
 				   for this section */
 	}
 
@@ -34,7 +34,7 @@ SECTIONS
 		PROVIDE(__STABSTR_BEGIN__ = .);
 		*(.stabstr);
 		PROVIDE(__STABSTR_END__ = .);
-		/*BYTE(0)		Force the linker to allocate space
+		BYTE(0)		/* Force the linker to allocate space
 				   for this section */
 	}
 
